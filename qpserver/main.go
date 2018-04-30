@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"net"
 	"net/http"
 
 	"github.com/elazarl/goproxy"
@@ -38,13 +39,31 @@ func main() {
 		return
 	}
 	ql := common.NewQuicListener(listener)
-
 	proxy := goproxy.NewProxyHttpServer()
 	proxy.Verbose = verbose
 	server := &http.Server{Addr: listenAddr, Handler: proxy}
-	log.Info("start serving %v", listenAddr)
-	log.Error("serve error:%v", server.Serve(ql))
+	log.Info("quic\t\tstart serving %v", listenAddr)
+	log.Error("quic\t\tserve error:%v", server.Serve(ql))
+	
 
+
+	tcpAddr, err := net.ResolveTCPAddr("tcp", listenAddr)
+	if err != nil {
+		return
+	}
+
+	tcpConn, err := net.ListenTCP("tcp", tcpAddr)
+	if err != nil {
+		return
+	}
+	
+	tlsConn := tls.NewListener(tcpConn, generateTLSConfig(cert, key))
+
+	tcp_proxy := goproxy.NewProxyHttpServer()
+	tcp_proxy.Verbose = verbose
+	tcp_server := &http.Server{Addr: listenAddr, Handler: tcp_proxy}
+	log.Info("tcp\t\t start serving %v", listenAddr)
+	log.Error("tcp\t\tserve error:%v", tcp_server.Serve(tlsConn))
 }
 
 func generateTLSConfig(certFile, keyFile string) *tls.Config {

@@ -18,12 +18,14 @@ func main() {
 		proxyUrl       string
 		skipCertVerify bool
 		verbose        bool
+		tcp			   bool
 	)
 
 	flag.StringVar(&listenAddr, "l", ":18080", "listenAddr")
 	flag.StringVar(&proxyUrl, "proxy", "", "upstream proxy url")
 	flag.BoolVar(&skipCertVerify, "k", false, "skip Cert Verify")
 	flag.BoolVar(&verbose, "v", false, "verbose")
+	flag.BoolVar(&tcp, "tcp", false, "Use TCP (instead of default QUIC)")
 	flag.Parse()
 
 	proxy := goproxy.NewProxyHttpServer()

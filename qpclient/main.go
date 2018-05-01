@@ -4,6 +4,8 @@ import (
 	"flag"
 	"net/http"
 	"net/url"
+	"sync"
+	"crypto/tls"
 
 	"github.com/elazarl/goproxy"
 	log "github.com/liudanking/goutil/logutil"
@@ -45,11 +47,31 @@ func main() {
 		return url.Parse(proxyUrl)
 	}
 
-	dialer := common.NewQuicDialer(skipCertVerify)
-	proxy.Tr.Dial = dialer.Dial
+	var wg sync.WaitGroup
+	wg.Add(1)
+	if !tcp {
+		log.Info("Using QUIC")
+		dialer := common.NewQuicDialer(skipCertVerify)
+		proxy.Tr.Dial = dialer.Dial
 
-	proxy.ConnectDial = proxy.NewConnectDialToProxy(proxyUrl)
+		proxy.ConnectDial = proxy.NewConnectDialToProxy(proxyUrl)
 
-	log.Info("start serving %s", listenAddr)
-	log.Error("%v", http.ListenAndServe(listenAddr, proxy))
+		log.Info("start serving %s", listenAddr)
+		log.Error("%v", http.ListenAndServe(listenAddr, proxy))	
+		
+		wg.Done()
+	} else {
+		log.Info("Using TCP")
+		// tlsConfig := &tls.Config{InsecureSkipVerify: true}
+		// tlsConfig.BuildNameToCertificate()
+		// tr := &http.Transport{TLSClientConfig: tlsConfig}
+		// proxy.Tr = tr
+		
+		proxy.ConnectDial = proxy.NewConnectDialToProxy(proxyUrl)
+		log.Info("start serving %s", listenAddr)
+		log.Error("%v", http.ListenAndServe(listenAddr, proxy))	
+
+		wg.Done()
+	}
+	wg.Wait()	
 }

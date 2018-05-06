@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
-	"crypto/tls"
 
 	"github.com/elazarl/goproxy"
 	log "github.com/liudanking/goutil/logutil"
@@ -38,7 +37,8 @@ func main() {
 		log.Error("proxyUrl:%s invalid", proxyUrl)
 		return
 	}
-	if Url.Scheme == "https" {
+
+	if Url.Scheme == "https" && !tcp {
 		log.Error("quic-proxy only support http proxy")
 		return
 	}
@@ -62,10 +62,6 @@ func main() {
 		wg.Done()
 	} else {
 		log.Info("Using TCP")
-		// tlsConfig := &tls.Config{InsecureSkipVerify: true}
-		// tlsConfig.BuildNameToCertificate()
-		// tr := &http.Transport{TLSClientConfig: tlsConfig}
-		// proxy.Tr = tr
 		
 		proxy.ConnectDial = proxy.NewConnectDialToProxy(proxyUrl)
 		log.Info("start serving %s", listenAddr)

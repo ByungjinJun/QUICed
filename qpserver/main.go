@@ -51,7 +51,7 @@ func main() {
 	go func() {log.Error("quic\t\tserve error:%v", server.Serve(ql))}()
 	
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", listenAddr)
+	tcpAddr, err := net.ResolveTCPAddr("tcp", ":80")
 	if err != nil {
 		log.Error("TCP resolve addr failed:%v", err)
 		return

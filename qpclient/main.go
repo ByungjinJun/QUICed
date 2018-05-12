@@ -4,6 +4,7 @@ import (
 	"flag"
 	"net/http"
 	"net/url"
+	"sync"
 
 	"github.com/elazarl/goproxy"
 	log "github.com/liudanking/goutil/logutil"
@@ -36,7 +37,8 @@ func main() {
 		log.Error("proxyUrl:%s invalid", proxyUrl)
 		return
 	}
-	if Url.Scheme == "https" {
+
+	if Url.Scheme == "https" && !tcp {
 		log.Error("quic-proxy only support http proxy")
 		return
 	}
@@ -45,11 +47,27 @@ func main() {
 		return url.Parse(proxyUrl)
 	}
 
-	dialer := common.NewQuicDialer(skipCertVerify)
-	proxy.Tr.Dial = dialer.Dial
+	var wg sync.WaitGroup
+	wg.Add(1)
+	if !tcp {
+		log.Info("Using QUIC")
+		dialer := common.NewQuicDialer(skipCertVerify)
+		proxy.Tr.Dial = dialer.Dial
 
-	proxy.ConnectDial = proxy.NewConnectDialToProxy(proxyUrl)
+		proxy.ConnectDial = proxy.NewConnectDialToProxy(proxyUrl)
 
-	log.Info("start serving %s", listenAddr)
-	log.Error("%v", http.ListenAndServe(listenAddr, proxy))
+		log.Info("start serving %s", listenAddr)
+		log.Error("%v", http.ListenAndServe(listenAddr, proxy))	
+		
+		wg.Done()
+	} else {
+		log.Info("Using TCP")
+		
+		proxy.ConnectDial = proxy.NewConnectDialToProxy(proxyUrl)
+		log.Info("start serving %s", listenAddr)
+		log.Error("%v", http.ListenAndServe(listenAddr, proxy))	
+
+		wg.Done()
+	}
+	wg.Wait()	
 }

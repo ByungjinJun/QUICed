@@ -17,12 +17,12 @@ import (
 
 func main() {
 	var (
-		listenAddr string
+		// listenAddr string
 		cert       string
 		key        string
 		verbose    bool
 	)
-	flag.StringVar(&listenAddr, "l", ":443", "listen addr (udp port only)")
+	// flag.StringVar(&listenAddr, "l", ":443", "listen addr (udp port only)")
 	flag.StringVar(&cert, "cert", "", "cert path")
 	flag.StringVar(&key, "key", "", "key path")
 	flag.BoolVar(&verbose, "v", false, "verbose")
@@ -34,6 +34,7 @@ func main() {
 		return
 	}
 
+	listenAddr := ":443"
 	listener, err := quic.ListenAddr(listenAddr, generateTLSConfig(cert, key), nil)
 	if err != nil {
 		log.Error("QUIC listen failed:%v", err)
@@ -51,7 +52,8 @@ func main() {
 	go func() {log.Error("quic\t\tserve error:%v", server.Serve(ql))}()
 	
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", ":80")
+	tcpListenAddr := ":80"
+	tcpAddr, err := net.ResolveTCPAddr("tcp", tcpListenAddr)
 	if err != nil {
 		log.Error("TCP resolve addr failed:%v", err)
 		return
@@ -67,8 +69,8 @@ func main() {
 
 	tcp_proxy := goproxy.NewProxyHttpServer()
 	tcp_proxy.Verbose = verbose
-	tcp_server := &http.Server{Addr: listenAddr, Handler: tcp_proxy}
-	log.Info("tcp\t\t start serving %v", listenAddr)
+	tcp_server := &http.Server{Addr: tcpListenAddr, Handler: tcp_proxy}
+	log.Info("tcp\t\t start serving :80")
 	go func(){log.Error("tcp\t\tserve error:%v", tcp_server.Serve(tlsConn))}()
 
 	wg.Add(1)
@@ -80,5 +82,5 @@ func generateTLSConfig(certFile, keyFile string) *tls.Config {
 	if err != nil {
 		panic(err)
 	}
-	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}
+	return &tls.Config{Certificates: []tls.Certificate{tlsCert}, InsecureSkipVerify: true}
 }

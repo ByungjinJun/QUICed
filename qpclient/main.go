@@ -43,20 +43,22 @@ func main() {
 		return
 	}
 
-	proxy.Tr.Proxy = func(req *http.Request) (*url.URL, error) {
-		return url.Parse(proxyUrl)
-	}
-
 	var wg sync.WaitGroup
 	wg.Add(1)
 	if !tcp {
 		log.Info("Using QUIC")
+	
+		proxy.Tr.Proxy = func(req *http.Request) (*url.URL, error) {
+			return url.Parse(proxyUrl)
+		}
+
+
 		dialer := common.NewQuicDialer(skipCertVerify)
 		proxy.Tr.Dial = dialer.Dial
 
 		proxy.ConnectDial = proxy.NewConnectDialToProxy(proxyUrl)
 
-		log.Info("start serving %s", listenAddr)
+		log.Info("start QUIC serving %s", listenAddr)
 		log.Error("%v", http.ListenAndServe(listenAddr, proxy))	
 		
 		wg.Done()
@@ -64,7 +66,7 @@ func main() {
 		log.Info("Using TCP")
 		
 		proxy.ConnectDial = proxy.NewConnectDialToProxy(proxyUrl)
-		log.Info("start serving %s", listenAddr)
+		log.Info("start TCP serving %s", listenAddr)
 		log.Error("%v", http.ListenAndServe(listenAddr, proxy))	
 
 		wg.Done()

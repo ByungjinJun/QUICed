@@ -10,6 +10,8 @@ import (
 
 	"github.com/elazarl/goproxy"
 	"github.com/ByungjinJun/quic-proxy/common"
+	"github.com/lucas-clemente/quic-go/h2quic"
+	"github.com/lucas-clemente/quic-go"
 )
 
 func main() {
@@ -43,6 +45,14 @@ func main() {
 	// Initialize the client proxy server
 	clientProxy := goproxy.NewProxyHttpServer()
     clientProxy.Verbose = verbose
+
+	roundTripper := &h2quic.RoundTripper{
+		QuicConfig: &quic.Config{Versions: versions},
+	}
+	defer roundTripper.Close()
+	hclient := &http.Client{
+		Transport: roundTripper,
+	}
 
 	// Set args in http transport
     clientProxy.Tr.Proxy = func(req *http.Request) (*url.URL, error) {

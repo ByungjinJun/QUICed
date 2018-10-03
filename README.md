@@ -1,4 +1,4 @@
-# Quic/TCP Proxy in Golang
+# QUIC/TCP Proxy in Golang
 
 A http/https proxy using [QUIC](https://www.chromium.org/quic) as transport layer, written in Golang.
 
@@ -23,7 +23,7 @@ Once setup has been completed, the server can be run at any time by navigating t
 -  `cd ~/go/src/github.com/feelmyears/quic-proxy/`
 -  `./server.sh` (or `bash server.sh`)
 
-To detach from the tmux window, type `Control-B, D`. To re-attach to a tmux window, type `tmux attach -t 0`. (This assumes that the previously created tmux window is named `0`.)
+To detach from the tmux window, type `Control-b, d`. To re-attach to a tmux window, type `tmux attach -t 0`. (This assumes that the previously created tmux window is named `0`.)
 
 Note that if the instance is not a free tier, you will be charged for **all of the time** that the server is up, and not just when you are running the go program for the quic proxy server. I reccomend that you turn off the instance when you're not using it for tests.
 
@@ -40,6 +40,10 @@ Note that if the instance is not a free tier, you will be charged for **all of t
 ### Create certificates for your server if it doesn't have:
 
 Go to quic-proxy/qpserver/cert/keygen and create certificates using the sh file. This sh uses [OpenSSL](https://www.openssl.org).
+
+**Note** When you create certificates, country name has to be 2 characters in leaf.cnf
+
+Locate certificates (leaf_cert.key, leaf_cert.pem) created into cert directory and register root certificate (2048-sha256-root.pem) to your server if your OS is MacOS.
 
 ### Start `qpserver`:
 
@@ -65,7 +69,7 @@ Install Golang first.
 
 Go to quic-proxy/qpclient directory and edit quic.sh/tcp.sh as you want:
 
-`go run client.go -v -k -proxy http://YOUR_REMOTE_SERVER:3443 -l 127.0.0.1:18443`
+`go run client.go -v -k -proxy http://YOUR_REMOTE_SERVER:6121 -l 127.0.0.1:18443`
 
 ### Set proxy for your application on your local machine
 
@@ -80,3 +84,5 @@ Go to quic-proxy/qpclient directory and edit quic.sh/tcp.sh as you want:
 
 * Resolve weird occasional hangs (30s) in QUIC channel
 * No explicit server IP
+* Automated client-side setup
+* Server selection on cloud based on client's location (DA2GC, SAT)

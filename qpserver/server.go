@@ -27,9 +27,9 @@ func main() {
 	flag.StringVar(&key, "key", "", "key path")
 	flag.BoolVar(&verbose, "v", false, "verbose")
 	flag.StringVar(&quicPort, "qport", "6121", "quic port")
-	quicPort = ":" + quicPort
 	flag.StringVar(&tcpAddr, "taddr", "165.124.183.118:10000", "tcp address and port")
 	flag.Parse()
+	quicPort = ":" + quicPort
 
 	// Set waitgroup for the main go routines
 	var wg sync.WaitGroup

@@ -1,11 +1,11 @@
-#Proxy Instructions
+# Proxy Instructions
 
-##Server
+## Server
 ### Setup (only do once per test server)
 1. Sign up for AWS or Google Cloud Platform to start a server in the cloud. If AWS spin up an EC2 instance and if Google Cloud Platform, spin up a Compute Engine instance. I reccomending using an **Ubuntu 16.04** image for the instance because we have been using it successfully (all previous tests on my  home server, AWS servers, and GCP server have all been on Ubuntu 16.04).
 2. Modify the network security group for the instance so that it can be accessed by the test client. I've just allowed all IPs for all ports but you could probably get away with just allowing the NU IP address over TCP/UDP ports. 
 2. SSH into server (for EC2 instances the command looks something like `$ ssh -i ~/Downloads/dsce.pem ubuntu@ec2-34-200-255-99.compute-1.amazonaws.com` where the parameter for the `-i` flag is the location of the key for the EC2 security group and the address after `ubuntu` is the public domain of the EC2 instance listed on the AWS console)
-3. Install go ([installation tutorial for Ubuntu 16.04](https://medium.com/@patdhlk/how-to-install-go-1-9-1-on-ubuntu-16-04-ee64c073cd79)). If you follow the default installation instructions (you should) you'll also need to add `export GOROOT=$GOPATH` after `export PATH=$PATH:/usr/local/go/bin` in the `.profile` file.
+3. Install go, proxy server and get the server ready ([See this](https://github.com/ByungjinJun/quic-proxy)).
 4. Pull the [proxy server code](https://github.com/feelmyears/quic-proxy): `$
 go get -u github.com/feelmyears/quic-proxy/qpserver`
 5. Go to proxy server directory: `cd ~/go/src/github.com/feelmyears/quic-proxy/`
@@ -35,21 +35,21 @@ To detach from the tmux window, type `Control-B, D`. To re-attach to a tmux wind
 
 Note that if the instance is not a free tier, you will be charged for **all of the time** that the server is up, and not just when you are running the go program for the quic proxy server. I reccomend that you turn off the instance when you're not using it for tests.
 
-##Client
-###Setup
+## Client
+### Setup
 1. Install go (using method of choice for your given platform)
 2. Pull the [proxy client code](https://github.com/feelmyears/quic-proxy): `$
 go get -u github.com/feelmyears/quic-proxy/qpclient`
 3. Modify the address in the `quic.sh` file to be the public IP address of the proxy server. EC2 addresses typically look like `ec2-34-205-28-242.compute-1.amazonaws.com` while GCE address look like `104.154.149.5`. Whatever the public address is (lets call it `0.0.0.0`), the protocol should always be `http` and the port `443`, so you should always have something like `http:\\0.0.0.0:443`. (The entire command would be `go run qpclient/main.go -v -k -proxy http://0.0.0.0:443 -l 127.0.0.1:18443`).
 4. **Optional:** If you are also testing one of the TCP proxy configurations, you can perform similar changes to the `tcp.sh` file but make sure that `https` and port `80` are used instead. 
 
-###Running
+### Running
 To run, simply navigate to the `github.com/feelmyears/quic-proxy` directory and start the `quic.sh` script (`./quic.sh` or `bash quic.sh`). 
 
 ## Sanity Test
 To make sure that everything is working properly once the client-side and server-side proxies have been started, use the [SwitchyOmega plugin](https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif?hl=en) for Chrome to route traffic through the local client QUIC proxy. You should be able to access any webpage via it.
 
-##Testing
+## Testing
 ### Network Emulation Setup
 If you are not running tests with network emulation, you can skip this section. Otherwise, first you need to configure the router with the proper emulation settings. To connect via WiFi, the router's network is hidden so you need to manually type in the SSID `OpenWrt` and password `password`. Alternatively, you can connect to the router directly via Ethernet. 
 
@@ -81,11 +81,6 @@ To run a test, simply navigate the the `dsce_ifc_tester` directory, make sure th
 ### Results Analysis
 Once results have been collected, the `plotter.ipynb` Jupyter notebook file can be used to generate ECDF plots for the performance differences between configurations. The analysis assumes that the only two configurations are `BYPASS_PROXY` and `QUIC_PROXY`, so if you want to test another, you'll need to modify the file. Just change the value of the `results_path` variable in the first cell to the path of the folder with the newly generated test results. Then run all cells to produce the plots. You might have the run the last cell twice to get the plots to display. You also might have to update some of the text in the last cell so that the plot titles reflect the testing configuration that you used. *I will try to create a Python script that generates the same ECDFs by just passing in the results folder name as a parameter. But for more advanced analysis, I recommend messing around with the data in a Jupyter Notebook.*
 
-##Todos
+## Todos
 - Python script with contents of `plotter.ipynb` for faster generation of ECDF graphs
 - Change organization of result files from hostname to URL to enable testing of multiple URLs with the same hostname
-
-
-
-
-

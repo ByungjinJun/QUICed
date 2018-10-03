@@ -19,14 +19,14 @@ func main() {
 		cert		string
 		key			string
 		verbose		bool
-		quicPort	int
+		quicPort	string
 		tcpAddr		string
 	)
 	// flag.StringVar(&listenAddr, "l", ":443", "listen addr (udp port only)")
 	flag.StringVar(&cert, "cert", "", "cert path")
 	flag.StringVar(&key, "key", "", "key path")
 	flag.BoolVar(&verbose, "v", false, "verbose")
-	flag.IntVar(&quicAddr, "qport", 6121, "quic port")
+	flag.StringVar(&quicPort, "qport", "6121", "quic port")
 	flag.StringVar(&tcpAddr, "taddr", "165.124.183.118:10000", "tcp address and port")
 	flag.Parse()
 
@@ -44,7 +44,7 @@ func main() {
 	}
 
 	// Create QUIC listener
-	listener, err := quic.ListenAddr(quicAddr, generateTLSConfig(cert, key), nil)
+	listener, err := quic.ListenAddr(quicPort, generateTLSConfig(cert, key), nil)
 	if err != nil {
 		log.Fatal("listen failed:%v", err)
 		return

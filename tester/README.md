@@ -1,63 +1,28 @@
-# Proxy Instructions
-
-## Server
-### Setup (only do once per test server)
-1. Sign up for AWS or Google Cloud Platform to start a server in the cloud. If AWS spin up an EC2 instance and if Google Cloud Platform, spin up a Compute Engine instance. I reccomending using an **Ubuntu 16.04** image for the instance because we have been using it successfully (all previous tests on my  home server, AWS servers, and GCP server have all been on Ubuntu 16.04).
-2. Modify the network security group for the instance so that it can be accessed by the test client. I've just allowed all IPs for all ports but you could probably get away with just allowing the NU IP address over TCP/UDP ports. 
-2. SSH into server (for EC2 instances the command looks something like `$ ssh -i ~/Downloads/dsce.pem ubuntu@ec2-34-200-255-99.compute-1.amazonaws.com` where the parameter for the `-i` flag is the location of the key for the EC2 security group and the address after `ubuntu` is the public domain of the EC2 instance listed on the AWS console)
-3. Install go, proxy server and get the server ready ([See this](https://github.com/ByungjinJun/quic-proxy)).
-4. Pull the [proxy server code](https://github.com/feelmyears/quic-proxy): `$
-go get -u github.com/feelmyears/quic-proxy/qpserver`
-5. Go to proxy server directory: `cd ~/go/src/github.com/feelmyears/quic-proxy/`
-6. Build the proxy server binary: `cd qpserver; go build; go install; cd ..;`
-7. Modify the contents of `server.sh` to contain new path of `qpserver` binary: `echo 'sudo ~/go/bin/qpserver -cert cert/leaf_cert.pem -key cert/leaf_cert.key' > server.sh`
-8. Test quic proxy server: `./server.sh`. The output should look like:
-
-```
-ubuntu@ip-172-31-13-114:~/go/src/github.com/feelmyears/quic-proxy$ ./server.sh
-2018-06-19 21:08:14 INFO goroutine:1/1 main.go main.main:31 ▶ Log level==verbose: false
-
-2018-06-19 21:08:14 INFO goroutine:1/3 main.go main.main:51 ▶ quic		start serving :443
-
-2018-06-19 21:08:14 INFO goroutine:1/4 main.go main.main:73 ▶ tcp		 start serving :80
-
-```
-You can kill the server at any time by typing `Control+C` 
-
-### Running
-Once setup has been completed, the server can be run at any time by navigating to the `quic-proxy` directory and running the `server.sh` script. I reccomend that you run it inside of a tmux window in order to avoid the server process stopping when the terminal times out:
-
-- `tmux`
--  `cd ~/go/src/github.com/feelmyears/quic-proxy/`
--  `./server.sh` (or `bash server.sh`)
-
-To detach from the tmux window, type `Control-B, D`. To re-attach to a tmux window, type `tmux attach -t 0`. (This assumes that the previously created tmux window is named `0`.)
-
-Note that if the instance is not a free tier, you will be charged for **all of the time** that the server is up, and not just when you are running the go program for the quic proxy server. I reccomend that you turn off the instance when you're not using it for tests.
-
-## Client
-### Setup
-1. Install go (using method of choice for your given platform)
-2. Pull the [proxy client code](https://github.com/feelmyears/quic-proxy): `$
-go get -u github.com/feelmyears/quic-proxy/qpclient`
-3. Modify the address in the `quic.sh` file to be the public IP address of the proxy server. EC2 addresses typically look like `ec2-34-205-28-242.compute-1.amazonaws.com` while GCE address look like `104.154.149.5`. Whatever the public address is (lets call it `0.0.0.0`), the protocol should always be `http` and the port `443`, so you should always have something like `http:\\0.0.0.0:443`. (The entire command would be `go run qpclient/main.go -v -k -proxy http://0.0.0.0:443 -l 127.0.0.1:18443`).
-4. **Optional:** If you are also testing one of the TCP proxy configurations, you can perform similar changes to the `tcp.sh` file but make sure that `https` and port `80` are used instead. 
-
-### Running
-To run, simply navigate to the `github.com/feelmyears/quic-proxy` directory and start the `quic.sh` script (`./quic.sh` or `bash quic.sh`). 
+# Test quic-proxy
 
 ## Sanity Test
-To make sure that everything is working properly once the client-side and server-side proxies have been started, use the [SwitchyOmega plugin](https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif?hl=en) for Chrome to route traffic through the local client QUIC proxy. You should be able to access any webpage via it.
+To make sure that everything is working properly once the client-side and server-side proxies have been started, test with SwitchOmega for Chrome to route traffic through the local client QUIC proxy.
+
+You should be able to access any webpage via it.
 
 ## Testing
 ### Network Emulation Setup
-If you are not running tests with network emulation, you can skip this section. Otherwise, first you need to configure the router with the proper emulation settings. To connect via WiFi, the router's network is hidden so you need to manually type in the SSID `OpenWrt` and password `password`. Alternatively, you can connect to the router directly via Ethernet. 
+If you are not running tests with network emulation, you can skip this section.
+
+First you need to configure the router with the proper emulation settings.
+
+Connect to the router via wired network. Alternatively, you can connect via Wifi. To connect via WiFi, the router's network is hidden so you need to manually type in the SSID `OpenWrt` and password `password`. 
 
 Once connected to the router, ssh into the router `ssh root@192.168.1.1` and type `password` when prompted for a password. Once in, navigate to the configurations directory `cd /etc/config` and modify the configuration files to your desired settings. To start an emulation, make sure that no other emulation configurations exist by executing the `stop_simulate.sh` script and then execute your desired configuration script.
 
+We use netem for the emulated network. Values for emulation (latency, loss and jitter) are from Scale-up research.
 
 ### Testbed Configuration
-Pull the [dsce\_ifc\_tester](https://github.com/feelmyears/dsce_ifc_tester) repo onto the local testbed machine. Once the repo has been pulled, you need to install the `chrome-har-capture` node package by running `npm install` inside the main directory of the repo (instructions to call Node [here](https://nodejs.org/en/download/)). **Do not try to do this with any network emulation beacuse it will be very slow!**
+**Do not try to do below with any network emulation because it will be very slow!**
+
+We use Google Chrome and `chrome-har-capture` for creating HAR files from test. 
+
+Install the `chrome-har-capture` node package by running `npm install` inside the main directory of the repo (instructions to call Node [here](https://nodejs.org/en/download/)). 
 
 Create a list of websites to test and put it in a text file (let's call it `my_list.txt`). Update the `collector_config.ini` file (or whatever configuration file you will be using) so that the `sites` key the value `my_list.txt` (`sites = my_list.txt`). You can also modify other values (explained below) as you see fit:
 
@@ -70,8 +35,7 @@ Create a list of websites to test and put it in a text file (let's call it `my_l
 All `router_*` keys and values are currently irrelevant and can be ignored. (They will only be used if the test collection system is modified to be able to SSH into the router and change the network emulation settings in between tests.)
 
 
-
-### Test Running
+### Run the test
 To run a test, simply navigate the the `dsce_ifc_tester` directory, make sure that the configuration is correct and start the tests with the command: `$ sudo python3 collectoy.py -i collector_config.ini`, where the parameter to the `-i` flag is the path to the configuration file of your choice.
 
  *Note: the test collection system will store all results in a folder with the same name as the file passed via the `sites` key in the configuration file so it is reccomended that you delete any folder with the same name before running (you will have to use `sudo rm -rf old_folder`)*

@@ -1,0 +1,8 @@
+# Client 				->  (bypass)ProxyClient -> ***  QUIC  ***  ->  (bypass)ProxyServer -> WebServer
+# Client 				->          ProxyClient -> ***  QUIC  ***  ->          ProxyServer -> WebServer
+
+
+On two settings:
+
+1)  MSS
+2)  DA2G

@@ -1,27 +1,26 @@
 package main
 
 import (
+	"log"
 	"flag"
 	"net/http"
 	"net/url"
+	"time"
 	"sync"
 
 	"github.com/elazarl/goproxy"
-	log "github.com/liudanking/goutil/logutil"
-	"github.com/liudanking/quic-proxy/common"
+	"github.com/feelmyears/quic-proxy/common"
 )
 
 func main() {
-	log.Debug("client")
-
+	// Process client args
 	var (
-		listenAddr     string
-		proxyUrl       string
-		skipCertVerify bool
-		verbose        bool
-		tcp			   bool
+		listenAddr	string
+		proxyUrl	string
+		skipCertVerify	bool
+		verbose		bool
+		tcp		bool
 	)
-
 	flag.StringVar(&listenAddr, "l", ":18080", "listenAddr")
 	flag.StringVar(&proxyUrl, "proxy", "", "upstream proxy url")
 	flag.BoolVar(&skipCertVerify, "k", false, "skip Cert Verify")
@@ -29,47 +28,56 @@ func main() {
 	flag.BoolVar(&tcp, "tcp", false, "Use TCP (instead of default QUIC)")
 	flag.Parse()
 
-	proxy := goproxy.NewProxyHttpServer()
-	proxy.Verbose = verbose
-
-	Url, err := url.Parse(proxyUrl)
+	// Validate the URL
+	serverProxy, err := url.Parse(proxyUrl)
 	if err != nil {
-		log.Error("proxyUrl:%s invalid", proxyUrl)
-		return
+			log.Println("[Proxy client error]: %v", err)
+			return
 	}
+	//log.Println(proxyUrl)
 
-	if Url.Scheme == "https" && !tcp {
-		log.Error("quic-proxy only support http proxy")
-		return
-	}
-
+	// Set waitgroup for the main goroutine
 	var wg sync.WaitGroup
 	wg.Add(1)
-	if !tcp {
-		log.Info("Using QUIC")
-	
-		proxy.Tr.Proxy = func(req *http.Request) (*url.URL, error) {
-			return url.Parse(proxyUrl)
-		}
 
+	// Initialize the client proxy server
+	clientProxy := goproxy.NewProxyHttpServer()
+    clientProxy.Verbose = verbose
 
-		dialer := common.NewQuicDialer(skipCertVerify)
-		proxy.Tr.Dial = dialer.Dial
-
-		proxy.ConnectDial = proxy.NewConnectDialToProxy(proxyUrl)
-
-		log.Info("start QUIC serving %s", listenAddr)
-		log.Error("%v", http.ListenAndServe(listenAddr, proxy))	
-		
-		wg.Done()
-	} else {
-		log.Info("Using TCP")
-		
-		proxy.ConnectDial = proxy.NewConnectDialToProxy(proxyUrl)
-		log.Info("start TCP serving %s", listenAddr)
-		log.Error("%v", http.ListenAndServe(listenAddr, proxy))	
-
-		wg.Done()
+	// Set args in http transport
+    clientProxy.Tr.Proxy = func(req *http.Request) (*url.URL, error) {
+		return clientProxy, nil
 	}
-	wg.Wait()	
+    clientProxy.Tr.MaxIdleConns = 90
+    clientProxy.Tr.IdleConnTimeout = 30 * time.Second
+
+	if !tcp {	// QUIC
+		//if Url.Scheme == "https" {
+		//	log.Error("quic-clientproxy only support http clientproxy")
+		//	return
+		//}
+
+		// Set Quic Dialer
+		dialer := common.NewQuicDialer(skipCertVerify)
+		clientProxy.Tr.Dial = dialer.Dial
+
+		// Run the client proxy
+		clientProxy.ConnectDial = clientProxy.NewConnectDialToProxy(proxyUrl)
+		log.Println("serving QUIC proxy at", listenAddr)
+		go func() {
+			log.Fatal(http.ListenAndServe(listenAddr, clientProxy))
+			defer wg.Done()
+		}()
+	} else {	// TCP
+		// Run the client proxy
+		clientProxy.ConnectDial = clientProxy.NewConnectDialToProxy(proxyUrl)
+		log.Println("serving TCP proxy at", listenAddr)
+		go func() {
+			http.ListenAndServe(listenAddr, clientProxy)
+			defer wg.Done()
+		}()
+
+	}
+	wg.Wait()
 }
+

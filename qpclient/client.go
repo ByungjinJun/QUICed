@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/elazarl/goproxy"
-	"github.com/feelmyears/quic-proxy/common"
+	"github.com/ByungjinJun/quic-proxy/common"
 )
 
 func main() {

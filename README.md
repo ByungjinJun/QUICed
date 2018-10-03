@@ -9,6 +9,7 @@ For the test purpose, the proxy can switch between QUIC and TCP.
 ## Installation & Usage
 
 [Install Golang](https://golang.org/dl/) first to your client and server.
+
 **Note**: require go version >= 1.9
 
 ### Install `qpserver` on your remote server

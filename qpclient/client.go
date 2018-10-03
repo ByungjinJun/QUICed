@@ -46,7 +46,7 @@ func main() {
 
 	// Set args in http transport
     clientProxy.Tr.Proxy = func(req *http.Request) (*url.URL, error) {
-		return clientProxy, nil
+		return serverProxy, nil
 	}
     clientProxy.Tr.MaxIdleConns = 90
     clientProxy.Tr.IdleConnTimeout = 30 * time.Second

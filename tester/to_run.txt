@@ -19,7 +19,6 @@ https://mail.ru
 https://www.amazon.co.jp/
 https://www.popads.net/
 https://github.com/
-https://www.pornhub.com/
 https://ok.ru/
 https://www.amazon.in/
 https://www.office.com/
@@ -28,10 +27,8 @@ https://fc2.com/
 https://www.dropbox.com/?landing=dbv2
 http://youku.com/
 https://www.adobe.com/
-https://xhamster.com
 http://www.tianya.cn
 https://www.cnn.com/
-https://www.xvideos.com/
 https://www.amazon.de/
 https://www.twitch.tv/
 http://www.wikia.com/fandom
@@ -46,13 +43,11 @@ http://diply.com/
 https://www.360totalsecurity.com
 https://www.amazon.co.uk/
 https://www.flipkart.com/
-https://bongacams.com/
 https://www.rakuten.co.jp/
 https://www.ask.com/
 https://vimeo.com/
 https://www.godaddy.com/
 https://www.salesforce.com/
-https://www.txxx.com
 https://www.bbc.co.uk/
 http://zhihu.com/
 https://www.ebay.de
@@ -117,7 +112,6 @@ https://www.livejournal.com/
 https://www.shutterstock.com/
 https://www.forbes.com/home_usa/
 https://tistory.com/
-https://upornia.com/
 http://www.foxnews.com/
 https://www.goo.ne.jp/
 https://www.skype.com/en/
@@ -144,7 +138,6 @@ https://wordpress.com/
 https://wetransfer.com/
 https://archive.org
 https://www.yelp.com/
-https://www.youporn.com/
 https://feedly.com/
 http://iwanttodeliver.com/
 http://www.ladbible.com/

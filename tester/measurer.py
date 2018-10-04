@@ -2,7 +2,9 @@
 
 import os
 import argparse
-import subprocess
+from subprocess import Popen, PIPE
+from threading import Timer
+import shlex
 from time import sleep
 from urllib.parse import urlparse
 from pdb import set_trace as bp
@@ -35,21 +37,31 @@ def start_chrome(chrome_path, proxy_port, remote_debugging_port, type):
 	elif type == 2:
 		cmd = f'{chrome_path} --user-data-dir=/tmp/chrome  --headless --enable-quic --remote-debugging-port={remote_debugging_port}'
 	elif type == 3:
-		cmd = f'{chrome_path} --user-data-dir=/tmp/chrome  --headless --proxy-server="localhost:{proxy_port}" --remote-debugging-port={remote_debugging_port}'
+		cmd = f'{chrome_path} --user-data-dir=/tmp/chrome  --headless --proxy-server="localhost:{proxy_port}" --remote-debugging-port={remote_debugging_port} --crash-dumps-dir=/tmp'
 	elif type == 4:
-		cmd = f'{chrome_path} --user-data-dir=/tmp/chrome  --headless --enable-quic --proxy-server="localhost:{proxy_port}" --remote-debugging-port={remote_debugging_port}'
+		cmd = f'{chrome_path} --user-data-dir=/tmp/chrome  --headless --enable-quic --proxy-server="localhost:{proxy_port}" --remote-debugging-port={remote_debugging_port} --crash-dumps-dir=/tmp'
 	elif type == 5:
 		cmd = f'{chrome_path} --user-data-dir=/tmp/chrome  --headless --proxy-server="localhost:{proxy_port}" --remote-debugging-port={remote_debugging_port}'
+#ipc-connection-timeout
 
-
-	p  = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+	p  = Popen(cmd, shell=True)
 	return p
 
 
 def capture_har(har_path, site):
-	cmd = f'node node_modules/chrome-har-capturer/bin/cli.js -o {har_path} {site}'
-	p  = subprocess.Popen(cmd, shell=True)
-	return p
+	cmd = f'node node_modules/chrome-har-capturer/bin/cli.js -o {har_path} {site}'# -u 5000 -g 1000'
+	proc = Popen(shlex.split(cmd))
+
+	# timeout for webpage hangs (e.g., with a pop-up freezes screen)
+	timer = Timer(80, proc.kill)
+	try:
+		timer.start()
+		proc.communicate()
+	finally:
+		timer.cancel()
+
+	#p.terminate()
+	#return return_code
 
 
 def ensureDir(file_path):
@@ -72,8 +84,9 @@ if __name__ == "__main__":
 	mainOutputDir = "output/"
 	ensureDir(mainOutputDir)
 
-	randomArray = [1,2,3,4,5]
+	#randomArray = [1,2,3,4,5]
 	# randomArray = [1,2]
+	randomArray = [4]
 
 	# ProxyPort selection based on Type. Defined on top.
 	proxyPort ={
@@ -100,6 +113,9 @@ if __name__ == "__main__":
 		for j in randomArray:
 			tempType = randomize.pop(randint(0,len(randomize)-1))
 			for r in range(1, args.repeat+1):
+				p_browser = start_chrome(args.chrome, proxyPort[tempType], 9222, tempType)
+				sleep(1)
+
 				hostname_parts = urlparse(url).hostname.split('.')
 				hostname = None
 				if len(hostname_parts) > 2:
@@ -109,21 +125,12 @@ if __name__ == "__main__":
 
 				outputDir = mainOutputDir + f'{i}_{hostname}/'
 				ensureDir(outputDir)
-				p_browser = start_chrome(args.chrome, proxyPort[tempType], 9222, tempType)
-				sleep(3)
-				p_har = capture_har(os.path.join(outputDir, f'type{tempType}_run{r}_{hostname}.har'), url)
-				p_har.wait()
+				
+				capture_har(os.path.join(outputDir, f'type{tempType}_run{r}_{hostname}.har'), url)
+				#print ("CHC returns " + str(p_har))
+
 				p_browser.kill()
-				sleep(5)
-
-
-
-
-
-
-
-
-
+				sleep(1)
 
 
 
@@ -143,20 +150,6 @@ if __name__ == "__main__":
 	# print(randomArray)
 	# print(randomArray.pop(randint(0,len(randomArray)-1)))
 	# print(randomArray)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -15,7 +15,7 @@ Connect to the router via wired network. Alternatively, you can connect via Wifi
 
 Once connected to the router, ssh into the router `ssh root@192.168.1.1` and type `password` when prompted for a password. Once in, navigate to the configurations directory `cd /etc/config` and modify the configuration files to your desired settings. To start an emulation, make sure that no other emulation configurations exist by executing the `stop_simulate.sh` script and then execute your desired configuration script.
 
-We use netem for the emulated network. Values for emulation (latency, loss and jitter) are from Scale-up research.
+We use netem for the emulated network. Values for emulation (throughput, latency, loss and jitter) are from Scale-up research.
 
 ### Testbed Configuration
 **Do not try to do below with any network emulation because it will be very slow!**

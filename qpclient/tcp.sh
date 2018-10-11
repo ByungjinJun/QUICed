@@ -1,1 +1,1 @@
-go run client.go -v -k -proxy http://10.95.137.54:10000 -l 127.0.0.1:18080 -tcp
+go run client.go -proxy 10.95.137.54:10000 -l :18443 -tcp

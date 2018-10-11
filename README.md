@@ -43,17 +43,18 @@ Go to quic-proxy/qpserver/cert/keygen and create certificates using the sh file.
 
 **Note** When you create certificates, country name has to be 2 characters in leaf.cnf
 
-Locate certificates (leaf_cert.key, leaf_cert.pem) created into cert directory and register root certificate (2048-sha256-root.pem) to your server if your OS is MacOS.
+Locate certificates (leaf_cert.key, leaf_cert.pem) created into cert directory and register root certificate (2048-sha256-root.pem) to your *CLIENT* if your OS is MacOS.
 
 ### Start `qpserver`:
 
 Go to quic-proxy/qpserver directory and edit run_server.sh as you want:
 
-`go run server.go -cert YOUR_CERT_FILE_PATH -key YOUR_KEY_FILE_PATH -v -qport YOUR_SERVER'S_QUIC_PORT -taddr YOUR_SERVER'S_ADDRESS_AND_TCP_PORT`
+`go run server.go -cert YOUR_CERT_FILE_PATH -key YOUR_KEY_FILE_PATH -qaddr YOUR_SERVER'S_QUIC_IP&PORT -taddr YOUR_SERVER'S_TCP_IP&PORT (-tcp)`
 
 **Note**: Don't forget to open the port.
+**Note**: If you want to see QUIC packets in **Wireshark**, you have to use 443 as the port for QUIC (2019/10/4). When you do this, to run go with sudo -to bind with 443-, you may want to [check this](https://github.com/hypriot/golang-armbuilds/issues/6#issuecomment-244233589).
 
-Then start the server by running run_server.sh.
+Then start the server by running quic_serv.sh / tcp_serv.sh
 
 You can kill the server at any time by typing `Control+C` 
 
@@ -69,7 +70,9 @@ Install Golang first.
 
 Go to quic-proxy/qpclient directory and edit quic.sh/tcp.sh as you want:
 
-`go run client.go -v -k -proxy http://YOUR_REMOTE_SERVER:6121 -l 127.0.0.1:18443`
+`go run client.go -proxy YOUR_REMOTE_SERVER_IP:443 -l :18443 (-tcp)`
+
+Note that set only port number (with :) for local listening address.
 
 ### Set proxy for your application on your local machine
 
@@ -82,7 +85,7 @@ Go to quic-proxy/qpclient directory and edit quic.sh/tcp.sh as you want:
 
 ## TODO
 
-* Resolve weird occasional hangs (30s) in QUIC channel
-* No explicit server IP
-* Automated client-side setup
-* Server selection on cloud based on client's location (DA2GC, SAT)
+* HTTP2 support
+* Serve on multiple ports
+* Automated client-side setup (e.g., root CA)
+* Server selection on cloud based on client's location (DA2GC, MSS)

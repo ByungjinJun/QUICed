@@ -2,83 +2,67 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"flag"
-	"sync"
 	"crypto/tls"
 
-	"github.com/lucas-clemente/quic-go"
-	"github.com/elazarl/goproxy"
 	"github.com/ByungjinJun/quic-proxy/common"
 )
 
 func main() {
 	// Process server args
-	var (
-		// listenAddr string
-		cert		string
-		key			string
-		verbose		bool
-		quicPort	string
-		tcpAddr		string
-	)
-	// flag.StringVar(&listenAddr, "l", ":443", "listen addr (udp port only)")
-	flag.StringVar(&cert, "cert", "", "cert path")
-	flag.StringVar(&key, "key", "", "key path")
-	flag.BoolVar(&verbose, "v", false, "verbose")
-	flag.StringVar(&quicPort, "qport", "6121", "quic port")
-	flag.StringVar(&tcpAddr, "taddr", "165.124.183.118:10000", "tcp address and port")
+	cert := flag.String("cert", "", "cert path")
+	key := flag.String("key", "", "key path")
+	quicAddr := flag.String("qaddr", "10.95.137.54:443", "quic address")
+	tcpAddr := flag.String("taddr", "10.95.137.54:8080", "tcp address")
+	tcp := flag.Bool("tcp", false, "use TCP instead QUIC")
 	flag.Parse()
-	quicPort = ":" + quicPort
 
-	// Set waitgroup for the main go routines
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-
-	// SERVE QUIC
-
-	// Check certificate
-	if cert == "" || key == "" {
-		log.Fatal("cert and key can't by empty")
+	//TODO: auto implementation of rootCA into the client?
+	// Check certificates and create TLS config
+	if *cert == "" || *key == "" {
+		log.Fatal("[ERROR] cert and key can't by empty")
 		return
 	}
+	tlsCfg:= generateTLSConfig(*cert, *key)
 
-	// Create QUIC listener
-	listener, err := quic.ListenAddr(quicPort, generateTLSConfig(cert, key), nil)
-	if err != nil {
-		log.Fatal("listen failed:%v", err)
-		return
+	var listener common.Listener
+	var err error
+	var handler *common.HttpHandler
+	if *tcp {	// Listen on TCP
+		listener, err = common.DefaultListener(*tcpAddr)
+		if err != nil {
+			log.Println(err)
+		}
+
+		handler = &common.HttpHandler{
+			Addr: *tcpAddr,
+			TLSConfig: tlsCfg,
+		}
+
+		log.Println("listening to TCP on", *tcpAddr)
+	} else {	// Listen on QUIC
+		config := &common.QuicConfig{
+			KeepAlive:   true,
+			TLSConfig:   tlsCfg,
+		}
+
+		listener, err = common.QUICListener(*quicAddr, config)
+		if err != nil {
+			log.Println(err)
+		}
+
+		handler = &common.HttpHandler{
+			Addr: *quicAddr,
+			TLSConfig: tlsCfg,
+		}
+
+		log.Println("listening to QUIC on", *quicAddr)
 	}
-	ql := common.NewQuicListener(listener)
 
-	// Initialize the proxy
-	quicProxy := goproxy.NewProxyHttpServer()
-	quicProxy.Verbose = verbose
+	server := &common.Server{Listener: listener}
+	go server.Serve(handler)
 
-	// Run QUIC proxy
-	server := &http.Server{Addr: quicPort, Handler: quicProxy}
-	log.Println("serving QUIC proxy at", quicPort)
-	go func() {
-		log.Fatal(server.Serve(ql))
-		defer wg.Done()
-	}()
-
-
-	// SERVE TCP
-
-	// Initialize the proxy
-	tcpProxy := goproxy.NewProxyHttpServer()
-	tcpProxy.Verbose = verbose
-
-	// Run TCP proxy
-	log.Println("serving TCP proxy at", tcpAddr)
-	go func() {
-		log.Fatal(http.ListenAndServe(tcpAddr, tcpProxy))
-		defer wg.Done()
-	}()
-
-	wg.Wait()
+	select {}
 }
 
 func generateTLSConfig(certFile, keyFile string) *tls.Config {
@@ -86,6 +70,6 @@ func generateTLSConfig(certFile, keyFile string) *tls.Config {
 	if err != nil {
 		panic(err)
 	}
+
 	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}
 }
-

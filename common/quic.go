@@ -171,7 +171,7 @@ func QUICListener(addr string, config *QuicConfig) (Listener, error) {
 
 	l := &quicListener{
 		listener: listener,
-		connChan: make(chan net.Conn, 2048),
+		connChan: make(chan net.Conn, 65535),
 		errChan:  make(chan error, 1),
 	}
 	go l.accept()

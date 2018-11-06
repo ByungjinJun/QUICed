@@ -84,7 +84,7 @@ class TestConfig:
 
 	def configure_chrome(self, chrome_path, remote_debugging_port):
 
-		cmd = f'{chrome_path} --user-data-dir=/tmp/chrome  --headless --crash-dumps-dir=/tmp --remote-debugging-port=9222'
+		cmd = f'{chrome_path} --user-data-dir=/tmp/chrome --crash-dumps-dir=/tmp --remote-debugging-port=9222'
 		proxy_port = self.PROXY_PORTS[self.proxy_config]
 
 		if   self.proxy_config == ProxyConfig.BYPASS_PROXY:
@@ -149,12 +149,12 @@ class TestRunner:
 			writer = csv.writer(f)
 			writer.writerow(['Website', 'Start Time'])
 
-		run_time = get_time()
+		# run_time = get_time()
 
 		for i, website in enumerate(self.websites):
-			if (get_time() - run_time) > 60*60:
-				sleep(60*1)
-				run_time = get_time()
+			# if (get_time() - run_time) > 60*60:
+			# 	sleep(60*1)
+			# 	run_time = get_time()
 
 			hostname_parts = urlparse(website).hostname.split('.')
 			hostname = None
@@ -232,6 +232,7 @@ class TestRunner:
 			t_duration = get_time() - t_start
 			har_capturer.kill()
 			sleep(1)
+			# chrome.terminate()
 			call(["killall", "-9", "Google Chrome"])
 			sleep(1)
 

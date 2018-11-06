@@ -2,3 +2,4 @@
 .idea/
 qpserver/cert/keygen/out
 tester/to_run
+tester/to_run_*

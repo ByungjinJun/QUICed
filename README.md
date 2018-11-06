@@ -86,6 +86,5 @@ Note that set only port number (with :) for local listening address.
 ## TODO
 
 * HTTP2 support
-* Serve on multiple ports
 * Automated client-side setup (e.g., root CA)
 * Server selection on cloud based on client's location (DA2GC, MSS)

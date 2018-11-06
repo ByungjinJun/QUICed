@@ -4,6 +4,7 @@ import (
 	"net"
 	"time"
 	"log"
+	"crypto/tls"
 )
 
 // A proxy server for both server-proxy and client-proxy
@@ -15,12 +16,34 @@ type Listener interface {
 	net.Listener
 }
 
-//TODO: serve on multiple ports
-func (s *Server) Serve(h *HttpHandler) error {
+type Handler interface {
+	Handle(net.Conn)
+}
+
+// HandlerOptions has options for Handler. This is required to add the different number of options to different protocol
+type HandlerOptions struct {
+	Addr      string
+	Tunnel    *Tunneler
+	TLSConfig *tls.Config
+}
+
+// Handler helper functions
+type HandlerOption func(opts *HandlerOptions)
+func SetHandlerAddr(addr string) HandlerOption {
+	return func(opts *HandlerOptions) {opts.Addr = addr}
+}
+func SetHandlerTunneler(tr *Tunneler) HandlerOption {
+	return func(opts *HandlerOptions) {opts.Tunnel = tr}
+}
+func SetHandlerTLSConfig(config *tls.Config) HandlerOption {
+	return func(opts *HandlerOptions) {opts.TLSConfig = config}
+}
+
+func (s *Server) Serve(h Handler) error {
 	var l Listener
 	if s.Listener == nil {
 		var err error
-		l, err = DefaultListener(h.Addr)
+		l, err = DefaultListener("")
 		if err != nil {
 			return err
 		}

@@ -53,10 +53,18 @@ func Run(tunnel *common.Tunneler, laddr string) {
 		log.Println(err)
 	}
 
-	handler := &common.HttpHandler{
-		Addr: laddr,
-		Tunnel: tunnel,
-	}
+	var handlerOptions []common.HandlerOption
+	handlerOptions = append(handlerOptions,
+		common.SetHandlerAddr(laddr),
+		common.SetHandlerTunneler(tunnel),
+	)
+	handler := common.HTTPHandler(handlerOptions...)
+	//handler := common.HTTPHandler(laddr, tunnel)
+
+	//handler := &common.httpHandler{
+	//	Addr: laddr,
+	//	Tunnel: tunnel,
+	//}
 
 	server := &common.Server{Listener: listener}
 	go server.Serve(handler)

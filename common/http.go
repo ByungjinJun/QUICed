@@ -8,19 +8,27 @@ import (
 	"net/url"
 	"strings"
 	"log"
-	"crypto/tls"
 	"io"
 )
 
 //TODO: HTTP2 handler
-type HttpHandler struct {
-	Addr      string
-	Tunnel    *Tunneler
-	TLSConfig *tls.Config
+type httpHandler struct {
+	options *HandlerOptions
+}
+
+// HTTPHandler creates a server Handler for HTTP proxy server.
+func HTTPHandler(opts ...HandlerOption) Handler {
+	h := &httpHandler{
+		options: &HandlerOptions{},
+	}
+	for _, opt := range opts {
+		opt(h.options)
+	}
+	return h
 }
 
 //Handle read requests from conn and pass it to *handleRequest*
-func (h *HttpHandler) Handle(conn net.Conn) {
+func (h *httpHandler) Handle(conn net.Conn) {
 	defer conn.Close()
 
 	req, err := http.ReadRequest(bufio.NewReader(conn))
@@ -42,7 +50,7 @@ func (h *HttpHandler) Handle(conn net.Conn) {
 }
 
 // handleRequest deliver the request to the next hop
-func (h *HttpHandler) handleRequest(conn net.Conn, req *http.Request) {
+func (h *httpHandler) handleRequest(conn net.Conn, req *http.Request) {
 	host := req.Host
 	if !strings.Contains(host, ":") {
 		host += ":80"
@@ -53,10 +61,10 @@ func (h *HttpHandler) handleRequest(conn net.Conn, req *http.Request) {
 	// the server-proxy if this is the client-proxy
 	var cNextHop net.Conn
 	var err error
-	if h.Tunnel == nil {
+	if h.options.Tunnel == nil {
 		cNextHop, err = net.DialTimeout("tcp", host, DialTimeout)
 	} else {
-		cNextHop, err = h.Tunnel.ConnectProxy(host)
+		cNextHop, err = h.options.Tunnel.ConnectProxy(host)
 	}
 	if err != nil {
 		log.Println("[HTTP ERR]", conn.RemoteAddr(), "->", host, "\n", err)

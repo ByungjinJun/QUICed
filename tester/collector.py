@@ -11,7 +11,6 @@ from time import sleep
 import csv
 from time import time as get_time
 import datetime
-import datetime
 
 def time_to_str(time):
     return datetime.datetime.fromtimestamp(int(time)).strftime('%m-%d %H:%M:%S')
@@ -28,6 +27,9 @@ def time_to_str(time):
 class ProxyConfig(Enum):
 	BYPASS_PROXY 		= 0		# Client 				->  (bypass)ProxyClient -> ***  QUIC  ***  ->  (bypass)ProxyServer -> WebServer
 	QUIC_PROXY 	 		= 1 	# Client 				->          ProxyClient -> ***  QUIC  ***  ->          ProxyServer -> WebServer
+	HTTP_PROXY_HTTPS 	= 2 	# Client 				->          ProxyClient -> ***  HTTPS  ***  ->          ProxyServer -> WebServer
+
+
 
 
 class ServiceConfig(Enum):
@@ -45,9 +47,20 @@ class TestConfig:
 	# }
 
 	PROXY_PORTS = {
-		ProxyConfig.BYPASS_PROXY 	    : 80,
+		# ProxyConfig.BYPASS_PROXY 	    : 80,
 		ProxyConfig.QUIC_PROXY			: 18443,
+		# ProxyConfig.HTTP_PROXY_HTTPS 	: 18000,
 	}
+
+	# PROXY_PORTS = {
+	# 	ProxyConfig.BYPASS_PROXY_HTTPS 	: 80,
+	# 	ProxyConfig.BYPASS_PROXY_QUIC	: 443,
+	# 	ProxyConfig.HTTP_PROXY_HTTPS 	: 18000,
+	# 	ProxyConfig.QUIC_PROXY_QUIC 	: 18443,
+	# 	ProxyConfig.HTTP_PROXY_QUIC 	: 18443,
+	# }
+
+
 
 	def __init__(self, proxy_config, service_config):
 		self.proxy_config = proxy_config
@@ -77,7 +90,9 @@ class TestConfig:
 		if   self.proxy_config == ProxyConfig.BYPASS_PROXY:
 			pass
 		elif self.proxy_config == ProxyConfig.QUIC_PROXY:
-			cmd += f' --proxy-server="localhost:18443"'
+			cmd += f' --enable-quic --proxy-server="localhost:18443"'
+		elif self.proxy_config == ProxyConfig.HTTP_PROXY_HTTPS:
+			cmd += f' --proxy-server="localhost:18000"'
 
 		print(cmd)
 		p  = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
@@ -90,7 +105,7 @@ class Router:
 		self.password = password
 
 class TestRunner:
-	def __init__(self, websites, chrome_path, remote_debugging_port, output, repeat, timeout, max_attempts, router):
+	def __init__(self, websites, chrome_path, remote_debugging_port, output, repeat, timeout, max_attempts):#, router):
 		"""
 			websites 		list of websites to test
 			chrome_path		path to installation of chrome
@@ -107,7 +122,7 @@ class TestRunner:
 		self.output = output
 		self.repeat = repeat
 		self.max_attempts = max(1, max_attempts)
-		self.router = router
+		# self.router = router
 		self.remote_debugging_port = remote_debugging_port
 		self.timeout = timeout
 		self.failure_path = os.path.join(self.output, 'failures.csv')
@@ -118,7 +133,7 @@ class TestRunner:
 
 	def run_tests(self):
 		hostnames = set()
-		configs = [pc for pc in ProxyConfig]
+		configs = [pc for pc in TestConfig.PROXY_PORTS]#ProxyConfig]
 		headers = ['Website', 'Timestamp']
 		for c in configs:
 			for i in range(1, self.repeat + 1):
@@ -196,7 +211,7 @@ class TestRunner:
 		output_path = self.get_run_output_path(hostname, service, proxy, run_index)
 
 		for attempt in range(self.max_attempts):
-			test_config.configure_router(self.router)
+			# test_config.configure_router(self.router)
 			call("sudo killall -HUP mDNSResponder".split())
 			call("sudo killall mDNSResponderHelper".split())
 			call("sudo dscacheutil -flushcache".split())
@@ -232,7 +247,7 @@ class TestRunner:
 		return False, t_start, t_duration
 
 	def capture_har(self, site, output_path):
-		cmd = f'node node_modules/chrome-har-capturer/bin/cli.js -r 3 -u 300000 -e 1000 -o {output_path} {site} '
+		cmd = f'~/node_modules/chrome-har-capturer/bin/cli.js -r 3 -u 300000 -e 1000 -o {output_path} {site} '
 		p  = subprocess.Popen(cmd, shell=True)
 		return p
 
@@ -241,7 +256,7 @@ class TestRunner:
 		return os.path.join(self.output, hostname, f'{service}-{proxy}-{run_index}.har')
 
 	def randomize_configs(self):
-		configs = [TestConfig(pc, sc) for (pc, sc) in itertools.product(ProxyConfig, ServiceConfig)]
+		configs = [TestConfig(pc, sc) for (pc, sc) in itertools.product(TestConfig.PROXY_PORTS, ServiceConfig)]
 		random.shuffle(configs)
 		return configs
 
@@ -289,5 +304,5 @@ if __name__ == "__main__":
 	timeout = int(default_config['timeout'])
 
 	remote_debugging_port = 9222
-	tr = TestRunner(urls, chrome, remote_debugging_port, output_dir, repeat, timeout, max_attempts, router)
+	tr = TestRunner(urls, chrome, remote_debugging_port, output_dir, repeat, timeout, max_attempts)
 	tr.run_tests()

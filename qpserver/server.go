@@ -13,8 +13,7 @@ func main() {
 	cert := flag.String("cert", "", "cert path")
 	key := flag.String("key", "", "key path")
 	quicAddr := flag.String("qaddr", "10.95.137.54:443", "quic address")
-	tcpAddr := flag.String("taddr", "10.95.137.54:8080", "tcp address")
-	tcp := flag.Bool("tcp", false, "use TCP instead QUIC")
+	tcpAddr := flag.String("taddr", "10.95.137.54:10000", "tcp address")
 	flag.Parse()
 
 	//TODO: auto implementation of rootCA into the client?
@@ -25,42 +24,46 @@ func main() {
 	}
 	tlsCfg:= generateTLSConfig(*cert, *key)
 
-	var listener common.Listener
-	var err error
-	var handler *common.HttpHandler
-	if *tcp {	// Listen on TCP
-		listener, err = common.DefaultListener(*tcpAddr)
-		if err != nil {
-			log.Println(err)
-		}
 
-		handler = &common.HttpHandler{
-			Addr: *tcpAddr,
-			TLSConfig: tlsCfg,
-		}
-
-		log.Println("listening to TCP on", *tcpAddr)
-	} else {	// Listen on QUIC
-		config := &common.QuicConfig{
-			KeepAlive:   true,
-			TLSConfig:   tlsCfg,
-		}
-
-		listener, err = common.QUICListener(*quicAddr, config)
-		if err != nil {
-			log.Println(err)
-		}
-
-		handler = &common.HttpHandler{
-			Addr: *quicAddr,
-			TLSConfig: tlsCfg,
-		}
-
-		log.Println("listening to QUIC on", *quicAddr)
+	// ----------- SERVE TCP -----------
+	tcpListener, err := common.DefaultListener(*tcpAddr)
+	if err != nil {
+		log.Println(err)
 	}
 
-	server := &common.Server{Listener: listener}
-	go server.Serve(handler)
+	var tcpHandlerOptions []common.HandlerOption
+	tcpHandlerOptions = append(tcpHandlerOptions,
+		common.SetHandlerAddr(*tcpAddr),
+		common.SetHandlerTLSConfig(tlsCfg),
+	)
+	tcpHandler := common.HTTPHandler(tcpHandlerOptions...)
+
+	log.Println("listening to TCP on", *tcpAddr)
+	ts := &common.Server{Listener: tcpListener}
+	go ts.Serve(tcpHandler)
+
+	// ----------- SERVE QUIC -----------
+	config := &common.QuicConfig{
+		KeepAlive:   true,
+		TLSConfig:   tlsCfg,
+	}
+
+	quicListener, err := common.QUICListener(*quicAddr, config)
+	if err != nil {
+		log.Println(err)
+	}
+
+	var quicHandlerOptions []common.HandlerOption
+	quicHandlerOptions = append(tcpHandlerOptions,
+		common.SetHandlerAddr(*quicAddr),
+		common.SetHandlerTLSConfig(tlsCfg),
+	)
+	quicHandler := common.HTTPHandler(quicHandlerOptions...)
+	//quicHandler := common.HTTP2Handler(*quicAddr, tlsCfg)
+
+	log.Println("listening to QUIC on", *quicAddr)
+	qs := &common.Server{Listener: quicListener}
+	go qs.Serve(quicHandler)
 
 	select {}
 }

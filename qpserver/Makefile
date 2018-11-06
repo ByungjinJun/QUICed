@@ -1,14 +1,6 @@
 SERVICE := server
-VERSION := 0.0.1
+VERSION := 1.0
 
 
-run: 
-	go run main.go -v -l :3443 -cert '../cert/cert.pem' -key '../cert/domain.key'
-
-	
-
-
-
-	
-
-
+run:
+    go run server.go -cert 'cert/leaf_cert.pem' -key 'cert/leaf_cert.key' -qaddr '10.95.137.54:443' -taddr '10.95.137.54:10000'

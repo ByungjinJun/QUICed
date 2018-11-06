@@ -1,9 +1,8 @@
 SERVICE := client
-VERSION := 0.0.1
-
+VERSION := 1.0
 
 run: 
-	go run main.go -v -k -proxy http://localhost:3443 -l :18080
+    go run client.go -proxy 10.95.137.54:443 -l :18443
 
 
 

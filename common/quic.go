@@ -171,7 +171,7 @@ func QUICListener(addr string, config *QuicConfig) (Listener, error) {
 
 	l := &quicListener{
 		listener: listener,
-		connChan: make(chan net.Conn, 65535),
+		connChan: make(chan net.Conn, 4096),
 		errChan:  make(chan error, 1),
 	}
 	go l.accept()
@@ -211,7 +211,8 @@ func (l *quicListener) acceptStream(session quic.Session) {
 			localAddr: session.LocalAddr(),
 			remoteAddr: session.RemoteAddr(),
 		}
-		log.Println("[NUM_ITEMS in channel]:", len(l.connChan))
+		// For Debug
+		// log.Println("[NUM_ITEMS in channel]:", len(l.connChan))
 	}
 }
 

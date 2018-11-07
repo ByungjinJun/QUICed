@@ -211,6 +211,7 @@ func (l *quicListener) acceptStream(session quic.Session) {
 			localAddr: session.LocalAddr(),
 			remoteAddr: session.RemoteAddr(),
 		}
+		log.Println("[NUM_ITEMS in channel]:", len(l.connChan))
 	}
 }
 

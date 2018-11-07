@@ -27,7 +27,7 @@ func main() {
 		log.Println("serving TCP on", *listenAddr)
 	} else {	// QUIC tunnel
 		config := &common.QuicConfig{
-			KeepAlive: true,
+			//KeepAlive: true,
 		}
 
 		dialer = common.QUICDialer(config)

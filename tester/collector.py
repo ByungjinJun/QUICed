@@ -84,7 +84,7 @@ class TestConfig:
 
 	def configure_chrome(self, chrome_path, remote_debugging_port):
 
-		cmd = f'{chrome_path} --user-data-dir=/tmp/chrome --crash-dumps-dir=/tmp --remote-debugging-port=9222'
+		cmd = f'{chrome_path} --user-data-dir=/tmp/chrome --headless --crash-dumps-dir=/tmp --remote-debugging-port=9222'
 		proxy_port = self.PROXY_PORTS[self.proxy_config]
 
 		if   self.proxy_config == ProxyConfig.BYPASS_PROXY:
@@ -230,9 +230,10 @@ class TestRunner:
 				print(f'Failed attempt #{attempt} for test <{service}, {proxy}, {run_index}>')
 
 			t_duration = get_time() - t_start
+
+			# To make sure everything has been killed before start another test
 			har_capturer.kill()
 			sleep(1)
-			# chrome.terminate()
 			call(["killall", "-9", "Google Chrome"])
 			sleep(1)
 

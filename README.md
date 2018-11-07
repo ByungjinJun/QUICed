@@ -1,12 +1,8 @@
-# QUIC/TCP Proxy in Golang
+# QUIC/TCP Tunnel (proxy) in Golang
 
-A http/https proxy using [QUIC](https://www.chromium.org/quic) as transport layer, written in Golang.
+A http/https tunnel using [QUIC](https://www.chromium.org/quic) as transport layer, written in Golang.
 
-This creates a QUIC channel between the client and the server like below. 
-
-![](https://ws1.sinaimg.cn/large/44cd29dagy1fpn4yaf2p8j20nd079aae.jpg)
-
-For the test purpose, the proxy can switch between QUIC and TCP. 
+This creates **a QUIC/TCP tunnel** between your client proxy and your server proxy to connect the target server. 
 
 ## Server
 
@@ -49,12 +45,13 @@ Locate certificates (leaf_cert.key, leaf_cert.pem) created into cert directory a
 
 Go to quic-proxy/qpserver directory and edit run_server.sh as you want:
 
-`go run server.go -cert YOUR_CERT_FILE_PATH -key YOUR_KEY_FILE_PATH -qaddr YOUR_SERVER'S_QUIC_IP&PORT -taddr YOUR_SERVER'S_TCP_IP&PORT (-tcp)`
+`go run server.go -cert YOUR_CERT_FILE_PATH -key YOUR_KEY_FILE_PATH -qaddr YOUR_SERVER'S_QUIC_IP&PORT -taddr YOUR_SERVER'S_TCP_IP&PORT`
 
-**Note**: Don't forget to open the port.
+**Note**: Don't forget to open the port on your system (varied by OS).
+
 **Note**: If you want to see QUIC packets in **Wireshark**, you have to use 443 as the port for QUIC (2019/10/4). When you do this, to run go with sudo -to bind with 443-, you may want to [check this](https://github.com/hypriot/golang-armbuilds/issues/6#issuecomment-244233589).
 
-Then start the server by running quic_serv.sh / tcp_serv.sh
+Then start the server by running run_server.sh
 
 You can kill the server at any time by typing `Control+C` 
 
@@ -88,3 +85,4 @@ Note that set only port number (with :) for local listening address.
 * HTTP2 support
 * Automated client-side setup (e.g., root CA)
 * Server selection on cloud based on client's location (DA2GC, MSS)
+

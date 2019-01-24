@@ -1,8 +1,0 @@
-Configs
-
-QC - (HTTPS) - WS
-QC - (QUIC) - WS
-
-QC - (HTTPS) - QS - (HTTPS) - WS
-QC - (QUIC) - QS - (QUIC) - WS
-QC - (QUIC) - QS - (HTTPS) - WS

@@ -29,8 +29,6 @@ func HTTPHandler(opts ...HandlerOption) Handler {
 
 //Handle read requests from conn and pass it to *handleRequest*
 func (h *httpHandler) Handle(conn net.Conn) {
-	defer conn.Close()
-
 	req, err := http.ReadRequest(bufio.NewReader(conn))
 	if err != nil {
 		log.Println("[HTTP ERR]", conn.RemoteAddr(), "->", conn.LocalAddr(), "\n", err)
@@ -40,6 +38,7 @@ func (h *httpHandler) Handle(conn net.Conn) {
 		log.Println("[HTTP]: empty request")
 		return
 	}
+	defer conn.Close()
 	defer req.Body.Close()
 
 	// for debugging
@@ -91,9 +90,12 @@ func (h *httpHandler) handleRequest(conn net.Conn, req *http.Request) {
 		}
 	}
 
-	log.Println("[HTTP] established:", cNextHop.LocalAddr(), "-", host)
-	transfer(conn, cNextHop)
-	log.Println("[HTTP] closed:", cNextHop.LocalAddr(), "-", host)
+	log.Println("[HTTP] established:", conn.RemoteAddr(), "-", host)
+	err = transfer(conn, cNextHop)
+	if err != nil {
+		log.Println("[HTTP ERR] trasfer error:", err)
+	}
+	log.Println("[HTTP] closed:", conn.RemoteAddr(), "-", host)
 }
 
 // ConnectHTTP sends the connect msg to the target
@@ -144,3 +146,4 @@ func transfer(rw1, rw2 io.ReadWriter) error {
 	}
 	return err
 }
+

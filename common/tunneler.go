@@ -47,3 +47,4 @@ func DefaultDialer() Dialer {
 func (dialer *tcpDialer) Dial(addr string) (net.Conn, error) {
 	return net.DialTimeout("tcp", addr, DialTimeout)
 }
+

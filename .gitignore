@@ -1,5 +1,12 @@
 .DS_Store
 .idea/
-qpserver/cert/keygen/out
-tester/to_run
+_results/
+_plots/
+qserver/cert/keygen/out
 tester/to_run_*
+tester/Old_txt
+tester/output
+tester/sites_run
+*.pyc
+makeGraphs.py
+proxy_analyzer.py

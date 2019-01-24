@@ -44,7 +44,7 @@ func main() {
 
 	// ----------- SERVE QUIC -----------
 	config := &common.QuicConfig{
-		KeepAlive:   true,
+		KeepAlive:   false,
 		TLSConfig:   tlsCfg,
 	}
 

@@ -8,7 +8,7 @@ This creates **a QUIC/TCP tunnel** between your client proxy and your server pro
 
 [Install Golang](https://golang.org/dl/) first to your **client and server**.
 
-**Note**: require go version >= 1.9
+**Note**: requires go version >= 1.9
 
 ## Server
 
@@ -34,15 +34,13 @@ Go to quic-proxy/qpserver directory and edit run_server.sh as you want:
 
 **Note**: Don't forget to open the port on your system (varied by OS).
 
-**Note**: If you want to see QUIC packets in **Wireshark**, you have to use 443 as the port for QUIC (2019/10/4). When you do this, to run go with sudo -to bind with 443-, you may want to [check this](https://github.com/hypriot/golang-armbuilds/issues/6#issuecomment-244233589).
+**Note**: If you want to see QUIC packets in **Wireshark**, you have to use 443 as the port for QUIC (10/4/2018). When you do this, to run go with sudo -to bind with 443-, you may want to [check this](https://github.com/hypriot/golang-armbuilds/issues/6#issuecomment-244233589).
 
 Then start the server by running run_server.sh
 
 You can kill the server at any time by typing `Control+C` 
 
 ## Client
-
-Install Golang first.
 
 ### Install `qpclient` on your local machine
 
@@ -85,6 +83,8 @@ Note that if the instance is not a free tier, you will be charged for **all of t
 
 ## TODO
 
+* Clear server cache for every connection (for testing purpose)
+* QUIC proxy slows down after 100~150 connections (congestion problem?) 
 * HTTP2 support
 * Automated client-side setup (e.g., root CA)
 * Server selection on cloud based on client's location (DA2GC, MSS)

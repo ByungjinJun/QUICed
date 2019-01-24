@@ -27,7 +27,7 @@ func main() {
 		log.Println("serving TCP on", *listenAddr)
 	} else {	// QUIC tunnel
 		config := &common.QuicConfig{
-			//KeepAlive: true,
+			KeepAlive: false,
 		}
 
 		dialer = common.QUICDialer(config)
@@ -61,11 +61,7 @@ func Run(tunnel *common.Tunneler, laddr string) {
 	handler := common.HTTPHandler(handlerOptions...)
 	//handler := common.HTTPHandler(laddr, tunnel)
 
-	//handler := &common.httpHandler{
-	//	Addr: laddr,
-	//	Tunnel: tunnel,
-	//}
-
 	server := &common.Server{Listener: listener}
 	go server.Serve(handler)
 }
+

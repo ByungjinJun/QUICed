@@ -93,7 +93,6 @@ func DefaultListener(addr string) (Listener, error) {
 	return &tcpListener{listener}, nil
 }
 
-// This may be the cause which slows down the connection
 // Use separated Accept for TCP to set keep alive. Better way?
 //func (l tcpListener) Accept() (net.Conn, error) {
 //	conn, err := l.AcceptTCP()
@@ -106,3 +105,4 @@ func DefaultListener(addr string) (Listener, error) {
 //
 //	return conn, nil
 //}
+

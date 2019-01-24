@@ -103,6 +103,7 @@ func (dr *quicDialer) Dial(addr string) (net.Conn, error) {
 			log.Println("[QUIC CL ERR] dial session failed:", err)
 		}
 		session = s
+		log.Println(session)
 		dr.sessions[addr] = session
 	}
 
@@ -236,3 +237,4 @@ func (l *quicListener) Addr() net.Addr {
 func (l *quicListener) Close() error {
 	return l.listener.Close()
 }
+

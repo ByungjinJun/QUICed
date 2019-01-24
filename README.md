@@ -8,7 +8,7 @@ This creates **a QUIC/TCP tunnel** between your client proxy and your server pro
 
 [Install Golang](https://golang.org/dl/) first to your **client and server**.
 
-**Note**: requires go version >= 1.9
+**Note**: requires go version >= 1.9 (current:1.11 - 1/24/2019)
 
 ## Server
 

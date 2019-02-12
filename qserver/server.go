@@ -5,7 +5,7 @@ import (
 	"flag"
 	"crypto/tls"
 
-	"github.com/ByungjinJun/quic-proxy/common"
+	"github.com/ByungjinJun/QUICed/common"
 )
 
 func main() {

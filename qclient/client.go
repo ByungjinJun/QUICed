@@ -4,7 +4,7 @@ import (
 	"log"
 	"flag"
 
-	"github.com/ByungjinJun/quic-proxy/common"
+	"github.com/ByungjinJun/QUICed/common"
 )
 
 func main() {

@@ -1,3 +1,5 @@
+github.com/ByungjinJun/QUICed v0.0.0-20190128203610-c90316093c57 h1:lcWoIH/MdwMYNnKHwA7/vHpsoC8XrsMtma12qChhPaw=
+github.com/ByungjinJun/QUICed v0.0.0-20190128203610-c90316093c57/go.mod h1:OV5RzNhgQ/aorOGhCMoNmifbDCPUWyB8dIsoVj7LOE0=
 github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da/go.mod h1:eHEWzANqSiWQsof+nXEI9bUVUyV6F53Fp89EuCh2EAA=
 github.com/bifurcation/mint v0.0.0-20180715133206-93c51c6ce115 h1:fUjoj2bT6dG8LoEe+uNsKk8J+sLkDbQkJnB6Z1F02Bc=
 github.com/bifurcation/mint v0.0.0-20180715133206-93c51c6ce115/go.mod h1:zVt7zX3K/aDCk9Tj+VM7YymsX66ERvzCJzw8rFCX2JU=

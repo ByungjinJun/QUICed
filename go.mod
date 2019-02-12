@@ -1,6 +1,7 @@
 module github.com/ByungjinJun/QUICed
 
 require (
+	github.com/ByungjinJun/QUICed v0.0.0-20190128203610-c90316093c57 // indirect
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da
 	github.com/bifurcation/mint v0.0.0-20180715133206-93c51c6ce115
 	github.com/cheekybits/genny v0.0.0-20170328200008-9127e812e1e9
